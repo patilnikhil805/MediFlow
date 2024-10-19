@@ -1,13 +1,30 @@
-import { Button } from "@/components/ui/button";
+"use client";
 
+
+import { Button } from "@/components/ui/button";
+import { useCurrent } from "@/features/api/use-current";
+import { useLogout } from "@/features/api/use-logout";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
+  const router = useRouter();
+  const { data, isLoading } = useCurrent();
+  const {mutate } = useLogout();
+
+  useEffect(() => {
+    if(!data && !isLoading) {
+      router.push("/sign-in");
+    }
+  }, [data]);
+
   return (
-    <div>
-      <Button variant={"destructive"}>Click me</Button>
-      <p className="text-red-100">
-        Nikhil
-      </p>
+    <div className="">
+        Only Visible
+
+        <Button onClick={() => mutate()}>
+          Logout
+        </Button>
     </div>
   )
 }
