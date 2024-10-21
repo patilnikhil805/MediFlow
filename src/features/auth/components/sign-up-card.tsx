@@ -12,12 +12,12 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { RegisterSchema } from "../auth/schemas"
+import { RegisterSchema } from "../schemas"
 import { useRegister } from "../api/use-register"
 
 
 const SignUpCard = () => {
-    const {mutate} = useRegister();
+    const {mutate, isPending} = useRegister();
 
     const form = useForm<z.infer<typeof RegisterSchema>>({
         resolver: zodResolver(RegisterSchema),
@@ -102,7 +102,7 @@ const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
                 </FormItem>
                     )}
                 />
-                <Button disabled={false} size="lg" className='w-full'>
+                <Button disabled={isPending} size="lg" className='w-full'>
                     Register
                 </Button>
             </form>
@@ -112,7 +112,7 @@ const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
             <DottedSeparator/>
         </div>
         <CardContent className='p-7 flex flex-col gap-y-4'>
-            <Button variant={"secondary"} disabled={false} size="lg" className='w-full'>
+            <Button variant={"secondary"} disabled={isPending} size="lg" className='w-full'>
             <span className="mr-2 text-2xl">
                 <FcGoogle />
             </span>
@@ -120,7 +120,7 @@ const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
             </Button>
         </CardContent>
         <CardContent>
-            <Button variant={"secondary"} disabled={false} size="lg" className='w-full'>
+            <Button variant={"secondary"} disabled={isPending} size="lg" className='w-full'>
             <span className="mr-2 text-2xl">
                 <FaGithub />
             </span>

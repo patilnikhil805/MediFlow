@@ -12,7 +12,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import Link from "next/link"
-import { LoginSchema } from "../auth/schemas"
+import { LoginSchema } from "../schemas"
 import { useLogin } from "../api/use-login"
 
 
@@ -20,7 +20,7 @@ import { useLogin } from "../api/use-login"
 
 
 const SignInCard = () => {
-    const {mutate} = useLogin();
+    const {mutate , isPending} = useLogin();
 
     const form = useForm<z.infer<typeof LoginSchema>>({
         resolver: zodResolver(LoginSchema),
@@ -55,6 +55,7 @@ const onSubmit = (values: z.infer<typeof LoginSchema>) => {
                     <FormControl>
                     <Input
                         {...field}
+                        
                         type='email'
                         placeholder='Enter email address'   
                     />
@@ -81,7 +82,7 @@ const onSubmit = (values: z.infer<typeof LoginSchema>) => {
                 />
                 
                 
-                <Button disabled={false} size="lg" className='w-full'>
+                <Button disabled={isPending} size="lg" className='w-full'>
                     Login
                 </Button>
             </form>
@@ -91,7 +92,7 @@ const onSubmit = (values: z.infer<typeof LoginSchema>) => {
             <DottedSeparator/>
         </div>
         <CardContent className='p-7 flex flex-col gap-y-4'>
-            <Button variant={"secondary"} disabled={false} size="lg" className='w-full'>
+            <Button variant={"secondary"} disabled={isPending} size="lg" className='w-full'>
             <span className="mr-2 text-2xl">
                 <FcGoogle />
             </span>
@@ -99,7 +100,7 @@ const onSubmit = (values: z.infer<typeof LoginSchema>) => {
             </Button>
         </CardContent>
         <CardContent>
-            <Button variant={"secondary"} disabled={false} size="lg" className='w-full'>
+            <Button variant={"secondary"} disabled={isPending} size="lg" className='w-full'>
             <span className="mr-2 text-2xl">
                 <FaGithub />
             </span>
