@@ -12,8 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCreateDepartment } from "../api/use-create-department";
 import { useRef } from "react";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Image from "next/image";
+import { ImageIcon } from "lucide-react";
+import { toast } from "sonner";
 
 
 
@@ -35,8 +37,30 @@ export const CreateDepartmentForm = ({onCancel}: CreateDepartmentFormProps ) => 
         })
 
         const onSubmit = (values: z.infer<typeof createDepartmentSchema>) => {
-            mutate({ json: values});
+            const finalValues = {
+                ...values,
+                image: values.image instanceof File ? values.image : "",
+            }
+
+            if (!finalValues.name) {
+                toast.error("Department name is required");
+                return;
+            }
+
+            mutate({ form: finalValues}, {
+                onSuccess: () => {
+                    form.reset();
+                    // TODO REDIRECT TO NEW DEPARTMENT
+                }
+            });
         };
+
+        const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (file) {
+                form.setValue("image", file);
+            }
+        }
 
         return (
             <Card className="w-full h-full border-none shadow-none">
@@ -78,15 +102,53 @@ export const CreateDepartmentForm = ({onCancel}: CreateDepartmentFormProps ) => 
                                         <div className="flex flex-col gap-y-2">
                                           <div className="flex items-center gap-x-5">
                                             {field.value ? (
-                                              <div>
-                                                <Image />
+                                              <div className="size-[72px] relative rounded-md overflow-hidden">
+                                                <Image
+                                                  alt="logo"
+                                                  fill
+                                                  className="object-cover"
+                                                  src={
+                                                    field.value instanceof File ? URL.createObjectURL(field.value) : field.value
+                                                  }
+                                                />
                                               </div>
                                             ) : (
-                                              <Avatar />
+                                              <Avatar className="size-[72px]">
+                                                <AvatarFallback>
+                                                    <ImageIcon className="size-[36px] text-neutral-100"/>
+                                                </AvatarFallback>
+                                              </Avatar>
                                             )}
+                                            <div className="flex flex-col ">
+                                                <p className="text-sm">
+                                                    Department Icon
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    JPG, PNG, SVG, OR JPEG, MAX 1MB
+                                                </p>
+                                                <input 
+                                                    className="hidden"
+                                                    type="file"
+                                                    accept=".jpg, .png, .svg, .jpeg"
+                                                    ref={inputRef}
+                                                    onChange={handleImageChange}
+                                                    disabled={isPending}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    disabled={isPending}
+                                                    variant={"teritary"}
+                                                    size="xs"
+                                                    className="w-fit mt-2"
+                                                    onClick={() => inputRef.current?.click()}
+                                                    >
+                                                    Upload Image
+                                                </Button>
+                                            </div>
                                           </div>
                                         </div>
                                       )}
+                                      
                                 />
                             </div>
                         <DottedSeparator className="py-7"/>

@@ -2,20 +2,50 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { createDepartmentSchema } from "../schemas";
 import { sessionMiddleware } from "@/lib/session-middleware";
-import { DATABASE_ID, DEPARTMENTS_ID, IMAGES_BUCKET_ID } from "@/config";
-import { ID } from "node-appwrite";
+import { DATABASE_ID, DEPARTMENTS_ID, IMAGES_BUCKET_ID, STAFF_ID } from "@/config";
+import { ID, Query } from "node-appwrite";
+import { StaffRole } from "@/features/staff/types";
+import { generateInviteCode } from "@/lib/utils";
 
 const app = new Hono()
+    .get("/", sessionMiddleware, async (c) => {
+
+        const user = c.get('user')
+        const databases = c.get("databases")
+
+        const staff = await databases.listDocuments(
+            DATABASE_ID,
+            STAFF_ID,
+            [Query.equal("userId", user.$id)]
+        );
+
+        if (staff.total === 0) {
+            return c.json({ data: {documents: [], total: 0}});
+        }
+
+        const departmentIds = staff.documents.map((staff) => staff.departmentId);
+
+        const departments = await databases.listDocuments(
+            DATABASE_ID,
+            DEPARTMENTS_ID,
+            [
+                Query.orderDesc("$createdAt"),
+                Query.contains("$id", departmentIds)
+            ]
+        );
+
+        return c.json({data : departments});
+    })
     .post(
         '/',
-        zValidator("json", createDepartmentSchema),
+        zValidator("form", createDepartmentSchema),
         sessionMiddleware,
         async (c) => {
             const databases = c.get("databases");
             const user = c.get('user')
             const storage = c.get('storage')
             
-            const {name, image} = c.req.valid("json")
+            const {name, image} = c.req.valid("form")
             
             let uploadedImageUrl: string | undefined;
 
@@ -43,8 +73,21 @@ const app = new Hono()
                     name,
                     userId: user.$id,
                     imageUrl: uploadedImageUrl,
+                    inviteCode: generateInviteCode(9)
                 }
+            );
+
+            await databases.createDocument(
+                DATABASE_ID,
+                STAFF_ID,
+                ID.unique(),
+                {
+                    userId: user.$id, 
+                    departmentId: department.$id,
+                    role: StaffRole.ADMIN,
+                },
             )
+
             return c.json({ data: department});
         }
     )

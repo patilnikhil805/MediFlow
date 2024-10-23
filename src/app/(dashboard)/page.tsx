@@ -1,19 +1,20 @@
 
 
-import { getCurrent } from "@/features/auth/actions";
-import { CreateDepartmentForm } from "@/features/departments/components/create-department-form";
+import { getCurrent } from "@/features/auth/query";
+import { getDepartments } from "@/features/departments/actions";
 import { redirect } from "next/navigation";
 
 
 
 export default async function Home() {
-    const currentuser =  await getCurrent();
 
-    if (!currentuser) redirect("/sign-in");
+    const user = await getCurrent();
+    if (!user) redirect("/sign-in");
 
-  return (
-    <div>
-      <CreateDepartmentForm  />
-    </div>
-  )
+    const departments = await getDepartments();
+    if (departments.total === 0) {
+      redirect("/departments/create")
+    } else {
+      redirect(`/departments/${departments.documents[0].$id}`)
+    }
 }

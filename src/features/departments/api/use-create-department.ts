@@ -18,8 +18,12 @@ export const useCreateDepartment = () => {
         Error,
         RequestType
     >({
-        mutationFn: async ({json}) => {
-            const response = await client.api.departments.$post({json})
+        mutationFn: async ({form}) => {
+
+            if (!form.name) {
+                throw new Error("Missing department name");
+            }
+            const response = await client.api.departments.$post({form})
             if (!response.ok) {
                 throw new Error("Failed to create")
             }
@@ -31,7 +35,7 @@ export const useCreateDepartment = () => {
             queryClient.invalidateQueries({queryKey: ["departments"]})
         },
         onError: () => {
-            toast.error("Failed to create workspace")
+            toast.error("Failed to create department")
         }
     })
 
