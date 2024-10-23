@@ -6,14 +6,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { DepartmentAvatar } from "@/features/departments/components/department-avatar"
 import { useRouter } from "next/navigation"
 import { useDepartmentId } from "@/features/departments/hooks/use-department-id"
+import { useCreateDepartmentModal } from "@/features/departments/hooks/use-create-department-modal"
 
 
 
 
 const DepartmentSwitcher = () => {
-  const DepartmentId = useDepartmentId();
+  const departmentId = useDepartmentId();
   const { data: departments } = useGetDepartments();
   const router = useRouter();
+  const { open } = useCreateDepartmentModal()
 
   const onSelect = (id: string) => {
     router.push(`/departments/${id}`)
@@ -26,11 +28,11 @@ const DepartmentSwitcher = () => {
         <p className="text-xs uppercase text-neutral-500">
           Departments
         </p>
-        <span className="text-neutral-500 cursor-pointer hover:opacity-75 transition">
-            <RiAddCircleFill size={20} />
+        <span onClick={open}className="text-neutral-500 cursor-pointer hover:opacity-75 transition">
+            <RiAddCircleFill  size={20} />
         </span>
       </div>
-      <Select onValueChange={onSelect}>
+      <Select onValueChange={onSelect} value={departmentId}>
         <SelectTrigger className="w-full bg-neutral-200 font-medium p-1" >
           <SelectValue placeholder="No department selected" />
           <SelectContent>

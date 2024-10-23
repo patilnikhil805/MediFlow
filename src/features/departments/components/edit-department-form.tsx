@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { createDepartmentSchema } from "../schemas";
+import { updateDepartmentSchema } from "../schemas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { DottedSeparator } from "@/components/dotted-seprator";
@@ -18,32 +18,35 @@ import { ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Department } from "../types";
 
 
 
 
-interface CreateDepartmentFormProps {
+interface EditDepartmentFormProps {
     onCancel?: () => void;
+    initalValues: Department;
 };
 
-export const CreateDepartmentForm = ({onCancel}: CreateDepartmentFormProps ) => {
+export const EditDepartmentForm = ({onCancel, initalValues}: EditDepartmentFormProps ) => {
 
     const router = useRouter();
 
     const { mutate, isPending } = useCreateDepartment();
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const form = useForm<z.infer<typeof createDepartmentSchema>>({
-        resolver: zodResolver(createDepartmentSchema),
+    const form = useForm<z.infer<typeof updateDepartmentSchema>>({
+        resolver: zodResolver(updateDepartmentSchema),
         defaultValues: {
-            
+            ...initalValues,
+            image: initalValues.imageUrl ?? "",
         },
         })
 
-        const onSubmit = (values: z.infer<typeof createDepartmentSchema>) => {
+        const onSubmit = (values: z.infer<typeof updateDepartmentSchema>) => {
             const finalValues = {
                 ...values,
-                image: values.image instanceof File ? values.image : "",
+                image: values.image instanceof File ? values.image : undefined,
             }
 
             if (!finalValues.name) {
@@ -51,7 +54,9 @@ export const CreateDepartmentForm = ({onCancel}: CreateDepartmentFormProps ) => 
                 return;
             }
 
-            mutate({ form: finalValues}, {
+            mutate({ form: finalValues,
+                    param: {departmentId: initalValues.$id}
+            }, {
                 onSuccess: ({data}) => {
                     
                     router.push(`/departments/${data.$id}`);
@@ -72,7 +77,7 @@ export const CreateDepartmentForm = ({onCancel}: CreateDepartmentFormProps ) => 
             <Card className="w-full h-full border-none shadow-none">
                 <CardHeader className="flex p-7">
                     <CardTitle className="text-cl font-bold">
-                        Create a new department
+                        {initalValues.name}
                     </CardTitle>
                 </CardHeader>
                 <div className="px-7">

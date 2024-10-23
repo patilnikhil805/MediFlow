@@ -1,11 +1,12 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import { createDepartmentSchema } from "../schemas";
+import { createDepartmentSchema, updateDepartmentSchema } from "../schemas";
 import { sessionMiddleware } from "@/lib/session-middleware";
 import { DATABASE_ID, DEPARTMENTS_ID, IMAGES_BUCKET_ID, STAFF_ID } from "@/config";
 import { ID, Query } from "node-appwrite";
 import { StaffRole } from "@/features/staff/types";
 import { generateInviteCode } from "@/lib/utils";
+import { getStaff } from "@/features/staff/utils";
 
 const app = new Hono()
     .get("/", sessionMiddleware, async (c) => {
@@ -88,6 +89,59 @@ const app = new Hono()
                 },
             )
 
+            return c.json({ data: department});
+        }
+    )
+    .patch(
+        "/:departmentId",
+        sessionMiddleware,
+        zValidator("form", updateDepartmentSchema),
+        async (c) => {
+            const databases = c.get('databases')
+            const storage =c.get('storage')
+            const user = c.get('user')
+
+            const { departmentId } = c.req.param();
+            const { name, image } = c.req.valid("form")
+
+            const staff =  await getStaff({
+                databases,
+                departmentId,
+                userId: user.$id,
+            })
+
+            if (!staff || staff.role != StaffRole.ADMIN) {
+                return c.json({ error: "Unauthorized"}, 401)
+            }
+            let uploadedImageUrl: string | undefined;
+
+            if (image instanceof File ) {
+                const file = await storage.createFile(
+                    IMAGES_BUCKET_ID,
+                    ID.unique(),
+                    image,
+                );
+
+                const arrayBuffer = await storage.getFilePreview(
+                    IMAGES_BUCKET_ID,
+                    file.$id,
+
+                )
+
+                uploadedImageUrl = `data:image/png;base64,${Buffer.from(arrayBuffer).toString("base64")}`
+            } else {
+                uploadedImageUrl = image;
+            }
+
+            const department = await databases.updateDocument(
+                DATABASE_ID,
+                DEPARTMENTS_ID,
+                departmentId,
+                {
+                    name,
+                    imageUrl: uploadedImageUrl
+                }
+            )
             return c.json({ data: department});
         }
     )
