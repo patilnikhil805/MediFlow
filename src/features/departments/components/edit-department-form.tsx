@@ -10,43 +10,43 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { DottedSeparator } from "@/components/dotted-seprator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useCreateDepartment } from "../api/use-create-department";
 import { useRef } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Image from "next/image";
-import { ImageIcon } from "lucide-react";
+import { ArrowLeftIcon, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Department } from "../types";
+import { useUpdateDepartment } from "../api/use-update-department";
 
 
 
 
 interface EditDepartmentFormProps {
     onCancel?: () => void;
-    initalValues: Department;
+    initialValues: Department;
 };
 
-export const EditDepartmentForm = ({onCancel, initalValues}: EditDepartmentFormProps ) => {
+export const EditDepartmentForm = ({onCancel, initialValues}: EditDepartmentFormProps ) => {
 
     const router = useRouter();
 
-    const { mutate, isPending } = useCreateDepartment();
+    const { mutate, isPending } = useUpdateDepartment();
     const inputRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<z.infer<typeof updateDepartmentSchema>>({
         resolver: zodResolver(updateDepartmentSchema),
         defaultValues: {
-            ...initalValues,
-            image: initalValues.imageUrl ?? "",
+            ...initialValues,
+            image: initialValues.imageUrl ?? "",
         },
         })
 
         const onSubmit = (values: z.infer<typeof updateDepartmentSchema>) => {
             const finalValues = {
                 ...values,
-                image: values.image instanceof File ? values.image : undefined,
+                image: values.image instanceof File ? values.image : "",
             }
 
             if (!finalValues.name) {
@@ -55,7 +55,7 @@ export const EditDepartmentForm = ({onCancel, initalValues}: EditDepartmentFormP
             }
 
             mutate({ form: finalValues,
-                    param: {departmentId: initalValues.$id}
+                    param: {departmentId: initialValues.$id}
             }, {
                 onSuccess: ({data}) => {
                     
@@ -75,9 +75,13 @@ export const EditDepartmentForm = ({onCancel, initalValues}: EditDepartmentFormP
 
         return (
             <Card className="w-full h-full border-none shadow-none">
-                <CardHeader className="flex p-7">
-                    <CardTitle className="text-cl font-bold">
-                        {initalValues.name}
+                <CardHeader className="flex flex-row items-center gap-x-4 p-7 space-y-0">
+                    <Button size="sm" variant={"secondary"} onClick={onCancel ? onCancel : () => router.push(`/workspaces/${initialValues.$id}`)}>
+                        <ArrowLeftIcon className="size-4 mr-2"/>
+                        Back
+                    </Button>
+                    <CardTitle className="text-xl font-bold">
+                        {initialValues.name}
                     </CardTitle>
                 </CardHeader>
                 <div className="px-7">
@@ -145,16 +149,35 @@ export const EditDepartmentForm = ({onCancel, initalValues}: EditDepartmentFormP
                                                     onChange={handleImageChange}
                                                     disabled={isPending}
                                                 />
+                                                {field.value ? (
+
+                                            <Button
+                                            type="button"
+                                            disabled={isPending}
+                                            variant={"destructive"}
+                                            size="xs"
+                                            className="w-fit mt-2"
+                                            onClick={() => {
+                                                field.onChange(null)
+                                                if (inputRef.current) {
+                                                    inputRef.current.value = "";
+                                                }
+                                            }}
+                                            >
+                                            Remove Image
+                                            </Button>
+                                            ) : (
                                                 <Button
-                                                    type="button"
-                                                    disabled={isPending}
-                                                    variant={"teritary"}
-                                                    size="xs"
-                                                    className="w-fit mt-2"
-                                                    onClick={() => inputRef.current?.click()}
-                                                    >
-                                                    Upload Image
-                                                </Button>
+                                                type="button"
+                                                disabled={isPending}
+                                                variant={"teritary"}
+                                                size="xs"
+                                                className="w-fit mt-2"
+                                                onClick={() => inputRef.current?.click()}
+                                                >
+                                                Upload Image
+                                            </Button>
+                                            )}
                                             </div>
                                           </div>
                                         </div>
@@ -181,7 +204,7 @@ export const EditDepartmentForm = ({onCancel, initalValues}: EditDepartmentFormP
                                 disabled={isPending}
                                 
                             >
-                                Create Department
+                                Save Changes
                             </Button>
 
                         </div>

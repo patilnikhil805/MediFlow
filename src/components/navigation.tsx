@@ -1,8 +1,11 @@
+'use client'
 import { cn } from '@/lib/utils'
 import { Settings, SettingsIcon } from 'lucide-react'
 import Link from 'next/link'
 import { FaHospitalUser } from 'react-icons/fa'
 import { GoCheckCircle, GoCheckCircleFill, GoHome, GoHomeFill } from 'react-icons/go'
+import { usePathname } from 'next/navigation'
+import { useDepartmentId } from '@/features/departments/hooks/use-department-id'
 
 const routes = [
     {
@@ -35,14 +38,18 @@ const routes = [
 
 
 const Navigation = () => {
+    const departmentId = useDepartmentId();
+    const pathname = usePathname()
   return (
     <ul className='flex flex-col'>
         {routes.map((item) => {
-            const isActive = false
+            const fullHref = `/departments/${departmentId}${item.href}`
+            
+            const isActive = pathname === fullHref
             const Icon = isActive ? item.activeIcon : item.icon
 
             return (
-                <Link key={item.href} href={item.href}>
+                <Link key={item.href} href={fullHref}>
                     <div className={cn(
                         "flex items-center gap-2.5 p-2.5 rouned-md font-medium hover:text-primary transition text-neutral-500",
                         isActive && 'bg-white shadow-sm hover:opacity-100 text-primary'
