@@ -9,6 +9,7 @@ import { generateInviteCode } from "@/lib/utils";
 import { getStaff } from "@/features/staff/utils";
 import { X } from "lucide-react";
 import { error } from "console";
+import { z } from "zod";
 
 const app = new Hono()
     .get("/", sessionMiddleware, async (c) => {
@@ -174,6 +175,59 @@ const app = new Hono()
 
             return c.json({ data: { $id: departmentId}})
             
+        }
+    )
+    .post(
+        '/:departmentId/reset-invite-code',
+        sessionMiddleware,
+        async (c) => {
+            const databases = c.get('databases')
+            const user = c.get('user')
+
+            const { departmentId} = c.req.param();
+
+            const staff = await getStaff({
+                databases,
+                departmentId,
+                userId: user.$id
+            })
+
+            if (!staff || staff.role !== StaffRole.ADMIN) {
+                return c.json ({error:  "Unauthorized"}, 401)
+            }
+
+            const department = await databases.updateDocument (
+                DATABASE_ID,
+                DEPARTMENTS_ID,
+                departmentId,
+                {
+                    inviteCode: generateInviteCode(9)
+                }
+            )
+
+            return c.json({ data: { $id: department}})
+            
+        }
+    )
+    .post("/:departmentId/join",
+        sessionMiddleware,
+        zValidator('json', z.object({ code: z.string() })),
+        async (c) => {
+            const { departmentId } = c.req.param();
+            const { code  } = c.req.valid("json")
+
+            const databases =  c.get("databases")
+            const user = c.get("user")
+
+            const staff = await getStaff({
+                departmentId,
+                userId: user.$id,
+                databases,
+            })
+
+            if (staff) {
+                return c.json({ error: "Already a member"}, 500)
+            }
         }
     )
 export default app
