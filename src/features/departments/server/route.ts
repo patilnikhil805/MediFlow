@@ -7,6 +7,8 @@ import { ID, Query } from "node-appwrite";
 import { StaffRole } from "@/features/staff/types";
 import { generateInviteCode } from "@/lib/utils";
 import { getStaff } from "@/features/staff/utils";
+import { X } from "lucide-react";
+import { error } from "console";
 
 const app = new Hono()
     .get("/", sessionMiddleware, async (c) => {
@@ -143,6 +145,35 @@ const app = new Hono()
                 }
             )
             return c.json({ data: department});
+        }
+    )
+    .delete(
+        '/:departmentId',
+        sessionMiddleware,
+        async (c) => {
+            const databases = c.get('databases')
+            const user = c.get('user')
+
+            const { departmentId} = c.req.param();
+
+            const staff = await getStaff({
+                databases,
+                departmentId,
+                userId: user.$id
+            })
+
+            if (!staff || staff.role !== StaffRole.ADMIN) {
+                return c.json ({error:  "Unauthorized"}, 401)
+            }
+
+            await databases.deleteDocument (
+                DATABASE_ID,
+                DEPARTMENTS_ID,
+                departmentId,
+            )
+
+            return c.json({ data: { $id: departmentId}})
+            
         }
     )
 export default app

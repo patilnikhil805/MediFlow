@@ -1,5 +1,5 @@
 import { getCurrent } from "@/features/auth/query";
-import { getDepartment } from "@/features/departments/actions";
+import { getDepartment } from "@/features/departments/query";
 import { EditDepartmentForm } from "@/features/departments/components/edit-department-form";
 import { redirect } from "next/navigation";
 

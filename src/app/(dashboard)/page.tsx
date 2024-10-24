@@ -1,7 +1,7 @@
 
 
 import { getCurrent } from "@/features/auth/query";
-import { getDepartments } from "@/features/departments/actions";
+import { getDepartments } from "@/features/departments/query";
 import { redirect } from "next/navigation";
 
 
