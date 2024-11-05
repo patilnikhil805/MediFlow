@@ -4,7 +4,7 @@ import { InferRequestType,InferResponseType } from "hono";
 import { client } from "@/lib/rpc"
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { error } from "console";
+
 
 type ResponseType = InferResponseType<typeof client.api.auth.register["$post"]>;
 type RequestType = InferRequestType<typeof client.api.auth.register["$post"]>;

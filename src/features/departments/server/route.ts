@@ -10,6 +10,7 @@ import { getStaff } from "@/features/staff/utils";
 import { X } from "lucide-react";
 import { error } from "console";
 import { z } from "zod";
+import { Department } from "../types";
 
 const app = new Hono()
     .get("/", sessionMiddleware, async (c) => {
@@ -228,6 +229,29 @@ const app = new Hono()
             if (staff) {
                 return c.json({ error: "Already a member"}, 500)
             }
+
+            const department = await databases.getDocument<Department>(
+                DATABASE_ID,
+                DEPARTMENTS_ID,
+                departmentId
+            )
+
+            if (department.inviteCode != code) {
+                return c.json({error : "Invalid invite code "}, 400);
+            }
+
+            await databases.createDocument (
+                DATABASE_ID,
+                STAFF_ID,
+                ID.unique(),
+                {
+                    departmentId,
+                    userId: user.$id,
+                    role: StaffRole.STAFF,
+                },
+
+            )
+            return c.json ({ data: department})
         }
     )
 export default app
