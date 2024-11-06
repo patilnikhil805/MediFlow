@@ -4,6 +4,7 @@ import { handle } from "hono/vercel";
 import auth from "@/features/auth/server/route";
 import departments from "@/features/departments/server/route"
 import staff from '@/features/staff/server/route'
+import patients from '@/features/patients/server/route'
 
 const app = new Hono().basePath('/api')
 
@@ -11,6 +12,7 @@ const routes = app
     .route("/auth", auth)
     .route("/staff", staff)
     .route('/departments', departments)
+    .route('/patients', patients)
 
 
 export const GET = handle(app)

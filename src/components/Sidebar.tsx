@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { DottedSeparator } from './dotted-seprator'
 import Navigation from './navigation'
 import DepartmentSwitcher from './department-switcher'
+import Patients from './patients'
 
 const Sidebar = () => {
   return (
@@ -17,6 +18,8 @@ const Sidebar = () => {
         <DepartmentSwitcher />
         <DottedSeparator className='my-4'/>
         <Navigation/>
+        <DottedSeparator className='my-4'/>
+        <Patients />
     </aside>
   )
 }
